@@ -11,6 +11,9 @@ public class LMKPrefabWrapper : MonoBehaviour, ILMKListener
     private GameObject _instantiatedObject;
     private LMKBroadcaster _broadcaster;
     private UnityEngine.ResourceManagement.AsyncOperations.AsyncOperationHandle _operationHandle;
+
+    private bool _loaded = false;
+    private bool _shouldBeLoaded = false;
     private bool _busy = false;
 
     // Start is called before the first frame update
@@ -30,6 +33,35 @@ public class LMKPrefabWrapper : MonoBehaviour, ILMKListener
             _broadcaster.DeregisterListener(this);
     }
 
+    void Update()
+    {
+        if (_shouldBeLoaded != _loaded)
+        {
+            if (_busy) return;
+            
+            if (_shouldBeLoaded)
+            {
+                _busy = true;
+                Addressables.LoadAssetAsync<GameObject>(AddressableName).Completed += OnLoadDone;
+            }
+            else
+            {
+                Destroy(_instantiatedObject);
+                _instantiatedObject = null;
+                Addressables.Release(_operationHandle);
+                _loaded = false;
+            }
+        }
+    }
+
+    private void OnLoadDone(UnityEngine.ResourceManagement.AsyncOperations.AsyncOperationHandle<GameObject> obj)
+    {
+        _operationHandle = obj;
+        _instantiatedObject = Instantiate(obj.Result, transform);
+        _loaded = true;
+        _busy = false;
+    }
+
     public void OnLowMemory()
     {
         Unload();
@@ -41,23 +73,12 @@ public class LMKPrefabWrapper : MonoBehaviour, ILMKListener
 
     public void Load()
     {
-        _busy = true;
-        Addressables.LoadAssetAsync<GameObject>(AddressableName).Completed += OnLoadDone;
-    }
-
-    private void OnLoadDone(UnityEngine.ResourceManagement.AsyncOperations.AsyncOperationHandle<GameObject> obj)
-    {
-        _operationHandle = obj;
-        _instantiatedObject = Instantiate(obj.Result, transform);
-        _busy = false;
+        _shouldBeLoaded = true;
     }
 
     public void Unload()
     {
-        Destroy(_instantiatedObject);
-        Addressables.Release(_operationHandle);
-
-        _instantiatedObject = null;
+        _shouldBeLoaded = false;
     }
 
 }
