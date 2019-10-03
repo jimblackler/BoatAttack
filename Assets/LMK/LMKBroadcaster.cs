@@ -11,7 +11,7 @@ public class LMKBroadcaster: MonoBehaviour
     public Text debugStatusText;
     public Text debugToggleText;
 
-#if UNITY_ANDROID
+#if UNITY_ANDROID && !UNITY_EDITOR
     private AndroidJavaClass unityPlayer = null;
     private AndroidJavaObject currentActivity = null;
     private AndroidJavaClass heuristics = null;
@@ -85,7 +85,7 @@ public class LMKBroadcaster: MonoBehaviour
 
     private string GetNativeHeap()
     {
-#if UNITY_ANDROID
+#if UNITY_ANDROID && !UNITY_EDITOR
         long memory = debug.CallStatic<long>("getNativeHeapAllocatedSize");
         return format(memory);
 #else
@@ -95,7 +95,7 @@ public class LMKBroadcaster: MonoBehaviour
 
     private string GetAvailMem()
     {
-#if UNITY_ANDROID
+#if UNITY_ANDROID && !UNITY_EDITOR
         long memory = memoryInfo.Get<long>("availMem");
         return format(memory);
 #else
@@ -111,7 +111,7 @@ public class LMKBroadcaster: MonoBehaviour
 
     private void UpdateHeuristic()
     {
-#if UNITY_ANDROID
+#if UNITY_ANDROID && !UNITY_EDITOR
         unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
         currentActivity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
         heuristics = new AndroidJavaClass("net.jimblackler.istresser.Heuristics");
@@ -167,13 +167,19 @@ public class LMKBroadcaster: MonoBehaviour
     {
         StringBuilder sb = new StringBuilder();
 
-        sb.AppendLine(string.Format("Native Heap: {0}", GetNativeHeap()));
-        sb.AppendLine(string.Format("Avail Mem: {0}", GetAvailMem()));
+#if UNITY_ANDROID && !UNITY_EDITOR
+        string nativeHeap = GetNativeHeap();
+        string availMem = GetAvailMem();
+
+        sb.AppendLine(string.Format("Native Heap: {0}", nativeHeap));
+        sb.AppendLine(string.Format("Avail Mem: {0}", availMem));
 
         _oomCheckWrapper.AppendDebugText("oomCheck", sb);
         _lowMemoryCheckWrapper.AppendDebugText("lowMemoryCheck", sb);
         _commitLimitWrapper.AppendDebugText("commitLimitCheck", sb);
         _availMemCheckWrapper.AppendDebugText("availMemCheck", sb);
+        Debug.Log(string.Format("{0}, {1}", nativeHeap, availMem));
+#endif
 
         if (debugStatusText != null)
         {
