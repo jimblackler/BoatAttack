@@ -19,6 +19,7 @@ namespace BoatAttack.Boat
         void OnEnable()
         {
             // Initial setup for wakes
+            
             foreach (Wake w in _wakes)
             {
                 for (int i = 0; i < 2; i++)

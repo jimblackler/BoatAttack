@@ -12,6 +12,7 @@ public class BoatFoamGenerator : MonoBehaviour
 
     private void Start()
     {
+        boatTransform = transform.parent.parent;
         module = ps.main;
         offset = transform.localPosition;
     }

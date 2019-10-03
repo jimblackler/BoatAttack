@@ -1,11 +1,12 @@
 {
   "registry": "https://staging-packages.unity.com",
   "dependencies": {
-    "com.unity.burst": "1.0.4",
+    "com.unity.burst": "1.1.1",
     "com.unity.cinemachine": "2.3.4",
     "com.unity.mathematics": "1.0.1",
+    "com.unity.mobile.adaptiveperformance": "0.1.1-preview.1",
     "com.unity.package-manager-ui": "2.2.0",
-    "com.unity.render-pipelines.lightweight": "6.7.1",
+    "com.unity.render-pipelines.lightweight": "6.9.0",
     "com.unity.textmeshpro": "2.0.1",
     "com.unity.timeline": "1.1.0",
     "com.unity.ugui": "1.0.0",
