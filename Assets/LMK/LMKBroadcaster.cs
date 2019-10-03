@@ -18,10 +18,10 @@ public class LMKBroadcaster: MonoBehaviour
     private AndroidJavaClass debug = null;
     private AndroidJavaObject memoryInfo = null;
 
-    private bool oomCheckResult = false;
-    private bool lowMemoryCheckResult = false;
-    private bool commitLimitResult = false;
-    private bool availMemCheckResult = false;
+    private LMKHeuristicWrapper _oomCheckWrapper = new LMKHeuristicWrapper();
+    private LMKHeuristicWrapper _lowMemoryCheckWrapper = new LMKHeuristicWrapper();
+    private LMKHeuristicWrapper _commitLimitWrapper = new LMKHeuristicWrapper();
+    private LMKHeuristicWrapper _availMemCheckWrapper = new LMKHeuristicWrapper();
 #endif
 
     private bool _lastBroadCastWasLow = false;
@@ -29,7 +29,6 @@ public class LMKBroadcaster: MonoBehaviour
 
     void Start()
     {
-//        Update();
     }
 
     // Update is called once per frame
@@ -128,12 +127,36 @@ public class LMKBroadcaster: MonoBehaviour
             }
         }
 
-        oomCheckResult = heuristics.CallStatic<bool>("oomCheck", currentActivity);
-        lowMemoryCheckResult = heuristics.CallStatic<bool>("lowMemoryCheck", currentActivity);
-        commitLimitResult = heuristics.CallStatic<bool>("commitLimitCheck");
-        availMemCheckResult = heuristics.CallStatic<bool>("availMemCheck", currentActivity);
+        bool broadCastLow = false;
+        _oomCheckWrapper.Update(() =>
+        {
+            bool result = heuristics.CallStatic<bool>("oomCheck", currentActivity);
+            if (result) broadCastLow = true;
+            return result;
+        });
 
-        if (oomCheckResult || lowMemoryCheckResult || commitLimitResult || availMemCheckResult)
+        _lowMemoryCheckWrapper.Update(() =>
+        {
+            bool result = heuristics.CallStatic<bool>("lowMemoryCheck", currentActivity);
+            if (result) broadCastLow = true;
+            return result;
+        });
+
+        _commitLimitWrapper.Update(() =>
+        {
+            bool result = heuristics.CallStatic<bool>("commitLimitCheck");
+            if (result) broadCastLow = true;
+            return result;
+        });
+
+        _availMemCheckWrapper.Update(() =>
+        {
+            bool result = heuristics.CallStatic<bool>("availMemCheck", currentActivity);
+            if (result) broadCastLow = true;
+            return result;
+        });
+
+        if (broadCastLow)
         {
             BroadCastLow();
         }
@@ -146,10 +169,11 @@ public class LMKBroadcaster: MonoBehaviour
 
         sb.AppendLine(string.Format("Native Heap: {0}", GetNativeHeap()));
         sb.AppendLine(string.Format("Avail Mem: {0}", GetAvailMem()));
-        sb.AppendLine(string.Format("oomCheck: {0}", oomCheckResult));
-        sb.AppendLine(string.Format("lowMemoryCheck: {0}", lowMemoryCheckResult));
-        sb.AppendLine(string.Format("commitLimitCheck: {0}", commitLimitResult));
-        sb.AppendLine(string.Format("availMemCheck: {0}", availMemCheckResult));
+
+        _oomCheckWrapper.AppendDebugText("oomCheck", sb);
+        _lowMemoryCheckWrapper.AppendDebugText("lowMemoryCheck", sb);
+        _commitLimitWrapper.AppendDebugText("commitLimitCheck", sb);
+        _availMemCheckWrapper.AppendDebugText("availMemCheck", sb);
 
         if (debugStatusText != null)
         {
