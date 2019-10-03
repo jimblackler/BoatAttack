@@ -6,7 +6,6 @@ using UnityEngine.AddressableAssets;
 
 public class LMKPrefabWrapper : MonoBehaviour, ILMKListener
 {
-    public GameObject PrefabToInit;
     public string AddressableName;
     
     private GameObject _instantiatedObject;

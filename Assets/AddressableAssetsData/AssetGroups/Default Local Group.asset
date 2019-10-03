@@ -17,6 +17,10 @@ MonoBehaviour:
     m_SerializedData: []
   m_GUID: 200c3be1ed711ba4c995c18b46a11492
   m_SerializeEntries:
+  - m_GUID: 7c8b6a695ceb2d54cbdba942bf5c2abd
+    m_Address: Env_Rocks
+    m_ReadOnly: 0
+    m_SerializedLabels: []
   - m_GUID: 81190c012bc578b48b709b32244f4fa8
     m_Address: ParticleFX
     m_ReadOnly: 0
