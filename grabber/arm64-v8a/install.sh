@@ -1,0 +1,1 @@
+adb push grabber /data/tmp && adb shell chmod +x data/tmp/grabber
