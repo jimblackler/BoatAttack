@@ -29,7 +29,7 @@ public class LMKBroadcaster: MonoBehaviour
 
     void Start()
     {
-        Update();
+//        Update();
     }
 
     // Update is called once per frame

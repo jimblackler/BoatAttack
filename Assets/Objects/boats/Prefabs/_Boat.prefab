@@ -606,9 +606,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d315058432c874c438ff96401ecf9811, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ParticleFXPrefab: {fileID: 4549546105107383316, guid: 81190c012bc578b48b709b32244f4fa8,
+  PrefabToInit: {fileID: 4549546105107383316, guid: 81190c012bc578b48b709b32244f4fa8,
     type: 3}
-  ParticleFXInit: {fileID: 0}
+  AddressableName: ParticleFX
 --- !u!1 &1881930577848730
 GameObject:
   m_ObjectHideFlags: 0
