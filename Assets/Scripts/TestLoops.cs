@@ -16,13 +16,19 @@ public class TestLoops : MonoBehaviour
         {
             string json = r.ReadToEnd();
             Debug.Log("$$ rawJson " + json);
-            JSONObject params_ = new JSONObject(json);
-            JSONObject flattened = FlattenParams(params_);
+            JSONObject params1 = new JSONObject(json);
+            JSONObject flattened = FlattenParams(params1);
             Debug.LogFormat("$$ flattened {0}", flattened.Print(true));
-
+            _testLabManager.LogToResults(flattened.Print(true));
             //Debug.LogFormat("$$ testing " + test.GetField("hello").n);
-
         }
+        
+        JSONObject o = JSONObject.obj;
+        o["testingOutput"] = JSONObject.Create(false);
+        o["test2"] = JSONObject.Create(99);
+        _testLabManager.LogToResults("test");
+        _testLabManager.LogToResults(o.Print(true));
+        
     }
 
     // Update is called once per frame
@@ -31,7 +37,6 @@ public class TestLoops : MonoBehaviour
         if (!_testLabManager.IsTestingScenario) { return; }
 
         Debug.Log("$$ Scenario number: " + _testLabManager.ScenarioNumber);
-
     }
 
     private static JSONObject FlattenParams(JSONObject params1)
@@ -43,15 +48,12 @@ public class TestLoops : MonoBehaviour
         for (int coordinateNumber = 0; coordinateNumber != coordinates.Count; coordinateNumber++)
         {
             JSONObject jsonArray = tests[coordinateNumber];
-            int n = (int) coordinates[coordinateNumber].i;
-            JSONObject jsonObject = jsonArray[n];
+            JSONObject jsonObject = jsonArray[(int) coordinates[coordinateNumber].i];
             foreach (string key in jsonObject.keys)
             { 
-                p.SetField(key, jsonObject[key]);
+                p[key] = jsonObject[key];
             }
         }
-
         return p;
     }
-
 }
