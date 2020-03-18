@@ -1,34 +1,31 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using Firebase.TestLab;
 using System.IO;
 
 public class TestLoops : MonoBehaviour
 {
     private TestLabManager _testLabManager;
+    private long _startTime;
 
     // Start is called before the first frame update
     void Start()
     {
         Debug.Log("$$ Starting");
+        _startTime = DateTime.Now.Ticks;
         _testLabManager = TestLabManager.Instantiate();
 
+    
         using (StreamReader r = new StreamReader(File.OpenRead("/sdcard/params.json")))
         {
-            string json = r.ReadToEnd();
-            Debug.Log("$$ rawJson " + json);
-            JSONObject params1 = new JSONObject(json);
+            JSONObject params1 = new JSONObject(r.ReadToEnd());
+
+            JSONObject report = JSONObject.obj;
+            report["params"] = params1;
+            _testLabManager.LogToResults(report.Print() + Environment.NewLine);
+
             JSONObject flattened = FlattenParams(params1);
-            Debug.LogFormat("$$ flattened {0}", flattened.Print(true));
-            _testLabManager.LogToResults(flattened.Print(true));
-            //Debug.LogFormat("$$ testing " + test.GetField("hello").n);
         }
-        
-        JSONObject o = JSONObject.obj;
-        o["testingOutput"] = JSONObject.Create(false);
-        o["test2"] = JSONObject.Create(99);
-        _testLabManager.LogToResults("test");
-        _testLabManager.LogToResults(o.Print(true));
-        
     }
 
     // Update is called once per frame
@@ -36,7 +33,17 @@ public class TestLoops : MonoBehaviour
     {
         if (!_testLabManager.IsTestingScenario) { return; }
 
-        Debug.Log("$$ Scenario number: " + _testLabManager.ScenarioNumber);
+#if UNITY_ANDROID
+        using (AndroidJavaClass debug = new AndroidJavaClass("android.os.Debug"))
+        {
+            JSONObject report = JSONObject.obj;
+            report["time"] = JSONObject.Create(DateTime.Now.Ticks - _startTime);
+            report["nativeAllocated"] = 
+                JSONObject.Create(debug.CallStatic<long>("getNativeHeapAllocatedSize"));
+            _testLabManager.LogToResults(report.Print() + Environment.NewLine);
+        }
+#endif
+
     }
 
     private static JSONObject FlattenParams(JSONObject params1)
