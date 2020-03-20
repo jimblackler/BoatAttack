@@ -6,24 +6,30 @@ using System.IO;
 public class TestLoops : MonoBehaviour
 {
     private TestLabManager _testLabManager;
-    private long _startTime;
+    private AndroidJavaObject _info;
 
     // Start is called before the first frame update
     void Start()
     {
         Debug.Log("$$ Starting");
-        _startTime = DateTime.Now.Ticks;
         _testLabManager = TestLabManager.Instantiate();
 
-    
         using (StreamReader r = new StreamReader(File.OpenRead("/sdcard/params.json")))
         {
             JSONObject params1 = new JSONObject(r.ReadToEnd());
+            JSONObject first = JSONObject.obj;
 
-            JSONObject report = JSONObject.obj;
-            report["params"] = params1;
-            _testLabManager.LogToResults(report.Print() + Environment.NewLine);
+            using (AndroidJavaClass helper =
+                new AndroidJavaClass("com.google.android.apps.internal.games.helperlibrary.Helper"))
+            {
+                first["build"] = JSONObject.Create(helper.CallStatic<string>("getBuild"));
+            }
 
+            first["params"] = params1;
+            _testLabManager.LogToResults(first.Print(false) + Environment.NewLine);
+            _info =
+                new AndroidJavaObject("com.google.android.apps.internal.games.helperlibrary.Info");
+            
             JSONObject flattened = FlattenParams(params1);
         }
     }
@@ -31,19 +37,19 @@ public class TestLoops : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (!_testLabManager.IsTestingScenario) { return; }
+        if (!_testLabManager.IsTestingScenario)
+        {
+            return;
+        }
 
 #if UNITY_ANDROID
-        using (AndroidJavaClass debug = new AndroidJavaClass("android.os.Debug"))
-        {
-            JSONObject report = JSONObject.obj;
-            report["time"] = JSONObject.Create(DateTime.Now.Ticks - _startTime);
-            report["nativeAllocated"] = 
-                JSONObject.Create(debug.CallStatic<long>("getNativeHeapAllocatedSize"));
-            _testLabManager.LogToResults(report.Print() + Environment.NewLine);
-        }
-#endif
-
+        AndroidJavaClass unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
+        AndroidJavaObject activity = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
+        AndroidJavaObject context = activity.Call<AndroidJavaObject>("getApplicationContext");
+        
+        JSONObject report = JSONObject.Create(_info.Call<string>("standardInfo", context));
+        _testLabManager.LogToResults(report.Print() + Environment.NewLine);
+      #endif
     }
 
     private static JSONObject FlattenParams(JSONObject params1)
@@ -57,7 +63,7 @@ public class TestLoops : MonoBehaviour
             JSONObject jsonArray = tests[coordinateNumber];
             JSONObject jsonObject = jsonArray[(int) coordinates[coordinateNumber].i];
             foreach (string key in jsonObject.keys)
-            { 
+            {
                 p[key] = jsonObject[key];
             }
         }
