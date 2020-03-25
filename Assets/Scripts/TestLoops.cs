@@ -31,6 +31,12 @@ public class TestLoops : MonoBehaviour
                 new AndroidJavaObject("com.google.android.apps.internal.games.helperlibrary.Info");
             
             JSONObject flattened = FlattenParams(params1);
+            if (flattened.HasField("quality"))
+            {
+                int quality = (int) flattened.GetField("quality").i;
+                Debug.LogFormat("$$ Quality {0}", quality);
+                QualitySettings.SetQualityLevel(quality);    
+            }
         }
     }
 
